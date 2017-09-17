@@ -1,4 +1,4 @@
 precmd() {
-		RPROMPT=$(~/scripts/prompt.exe 1 $?)
-		PROMPT=$(~/scripts/prompt.exe 0)
+		RPROMPT=$(~/.powerline 1 $?)
+		PROMPT=$(~/.powerline 0)
 }
