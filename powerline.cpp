@@ -52,44 +52,48 @@ public:
 		if (segments_left.size() > 0) {
 			uint32_t i=0;
 			for (;i<(segments_left.size()-1);i++) {
-				printf(PL_FORMAT_LEFT,
-						segments_left[i].fg,
-						segments_left[i].bg,
-						segments_left[i].text.c_str());
-				printf(PL_FORMAT_LEFT,
-						segments_left[i].bg,
-						segments_left[i+1].bg,
-						lchar);
+				printf(
+					"%%F{%u}%%K{%u}%s%%F{%u}%%K{%u}%s",
+					segments_left[i].fg,
+					segments_left[i].bg,
+					segments_left[i].text.c_str(),
+					segments_left[i].bg,
+					segments_left[i+1].bg,
+					lchar
+				);
 			}
-			printf(PL_FORMAT_LEFT,
-						segments_left[i].fg,
-						segments_left[i].bg,
-						segments_left[i].text.c_str());
-			printf(PL_FORMAT_LEFT_END,
-						segments_left[i].bg,
-						lchar);
+			printf(
+				"%%F{%u}%%K{%u}%s%%F{%u}%%k%s%%f ",
+				segments_left[i].fg,
+				segments_left[i].bg,
+				segments_left[i].text.c_str(),
+				segments_left[i].bg,
+				lchar
+			);
 		}
 	};
 	void render_segments_right() {
 		if (segments_right.size() > 0) {
 			uint32_t i=0;
-			printf(PL_FORMAT_RIGHT_END,
-						segments_right[i].bg,
-						rchar);
-			printf(PL_FORMAT_RIGHT,
-						segments_right[i].fg,
-						segments_right[i].bg,
-						segments_right[i].text.c_str());
+			printf(
+				"%%F{%u}%s%%F{%u}%%K{%u}%s",
+				segments_right[i].bg,
+				rchar,
+				segments_right[i].fg,
+				segments_right[i].bg,
+				segments_right[i].text.c_str()
+			);
 			i++;
 			for (;i<segments_right.size();i++) {
-				printf(PL_FORMAT_RIGHT,
-						segments_right[i].bg,
-						segments_right[i-1].bg,
-						rchar);
-				printf(PL_FORMAT_RIGHT,
-						segments_right[i].fg,
-						segments_right[i].bg,
-						segments_right[i].text.c_str());
+				printf(
+					"%%F{%u}%%K{%u}%s%%F{%u}%%K{%u}%s",
+					segments_right[i].bg,
+					segments_right[i-1].bg,
+					rchar,
+					segments_right[i].fg,
+					segments_right[i].bg,
+					segments_right[i].text.c_str()
+				);
 			}
 		}
 	};
