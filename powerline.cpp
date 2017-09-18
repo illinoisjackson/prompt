@@ -206,59 +206,96 @@ int info_get_login(std::string * ostr) {
 
 int info_get_git_branch(std::string * ostr) {
 	struct stat info;
-	if (stat(".git/HEAD", &info) != 0) {
+	char buf[512];
+	bool foundgit = false;
+	if (getcwd(&buf[0],sizeof(buf)) == NULL) {
 		return 0;
-	} else if (info.st_mode & S_IFDIR) {
-		return 0;
-	} else {
-		std::regex brpattern("ref: refs\\/heads\\/(.*)");
-		std::smatch brmatch;
-		std::ifstream ifs(".git/HEAD");
-		std::string content( 
-			(std::istreambuf_iterator<char>(ifs) ),
-			(std::istreambuf_iterator<char>()    ) 
-		);
-		std::string result;
-		if (std::regex_search(content, brmatch, brpattern) 
-			&& brmatch.size() > 1) {
-			*ostr = brmatch.str(1);
-		} else {
-			return 0;
-		}
-		return 1;
 	}
+	std::string cwd(&buf[0]);
+	std::string ghead("/.git/HEAD");
+	while (!foundgit) {
+		if (stat((cwd+ghead).c_str(), &info) != 0) {
+			size_t found;
+			std::string wdsstr;
+			found = cwd.find_last_of("/");
+			if (found != std::string::npos) {
+				cwd = cwd.substr(0,found);
+			} else {
+				return 0;
+			}
+			continue;
+		} else if (info.st_mode & S_IFDIR) {
+			return 0;
+		} else {
+			foundgit = true;
+			continue;
+		}
+	}
+	std::regex brpattern("ref: refs\\/heads\\/(.*)");
+	std::smatch brmatch;
+	std::ifstream ifs(cwd+ghead);
+	std::string content( 
+		(std::istreambuf_iterator<char>(ifs) ),
+		(std::istreambuf_iterator<char>()    ) 
+	);
+	std::string result;
+	if (std::regex_search(content, brmatch, brpattern) 
+		&& brmatch.size() > 1) {
+		*ostr = brmatch.str(1);
+	} else {
+		return 0;
+	}
+	return 1;
 }
 
 int info_get_hg_branch(std::string * ostr) {
 	struct stat info, binfo;
-	if (stat(".hg", &info ) != 0) {
-		return 0;
-	} else if (info.st_mode & S_IFDIR) {
-		if (stat(".hg/branch", &binfo) != 0) {
-			*ostr = "default";
-			return 1;
-		} else if (binfo.st_mode & S_IFDIR) {
-			return 0;
-		} else {
-			std::ifstream ifs(".hg/branch");
-			std::string content( 
-				(std::istreambuf_iterator<char>(ifs) ),
-				(std::istreambuf_iterator<char>()    ) 
-			);
-			content.erase(
-				std::remove(
-					content.begin(), 
-					content.end(), 
-					'\n'
-					), 
-				content.end()
-			);
-			*ostr = content;
-			return 1;
-		}
-	} else {
+	char buf[512];
+	bool foundhg = false;
+	if (getcwd(&buf[0],sizeof(buf)) == NULL) {
 		return 0;
 	}
+	std::string cwd(&buf[0]);
+	std::string hhead("/.hg");
+	while (!foundhg) {
+		if (stat(((cwd+hhead).c_str()), &info) != 0) {
+			size_t found;
+			std::string wdsstr;
+			found = cwd.find_last_of("/");
+			if (found != std::string::npos) {
+				cwd = cwd.substr(0,found);
+			} else {
+				return 0;
+			}
+			continue;
+		} else if (info.st_mode & S_IFDIR) {
+			foundhg = true;
+			continue;
+		} else {
+			return 0;
+		}
+	}
+	if (stat((cwd+std::string("/.hg/branch")).c_str(), &binfo) != 0) {
+		*ostr = "default";
+		return 1;
+	} else if (binfo.st_mode & S_IFDIR) {
+		return 0;
+	}
+	std::ifstream ifs(cwd+std::string("/.hg/branch"));
+	std::string content( 
+		(std::istreambuf_iterator<char>(ifs) ),
+		(std::istreambuf_iterator<char>()    ) 
+	);
+	content.erase(
+		std::remove(
+			content.begin(), 
+			content.end(), 
+			'\n'
+			), 
+		content.end()
+	);
+	*ostr = content;
+	return 1;
 }
 
 int main(int argc, char**argv) {
@@ -327,7 +364,6 @@ int main(int argc, char**argv) {
 					plm.segments_right.push_back(pl_segment(15,9,exitstr));
 				}
 			}
-			
 			std::string shortpath;
 			if (info_get_cwd_home(&shortpath)) {
 				pl_segment homeseg(15,236);
