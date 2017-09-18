@@ -334,7 +334,7 @@ int main(int argc, char**argv) {
 			pl_segment gitstatus(15,33);
 			std::string gbranch;
 			if (info_get_git_branch(&gbranch)) {
-				gitstatus.text.append("\uE702 ");
+				gitstatus.text.append("\uF1D3 ");
 				gitstatus.text.append(gbranch);
 				pad_space(&gitstatus.text);
 				plm.segments_left.push_back(gitstatus);
